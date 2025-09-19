@@ -1,0 +1,24 @@
+science
+politics
+history
+biology
+architecture
+law
+geography
+archaeology
+literature
+business management
+agriculture
+statistics
+mathematics
+logic
+physics
+psychology
+anthropology
+economics
+philosophy
+performing arts
+visual
+arts
+chemistry
+humanities

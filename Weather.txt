@@ -1,0 +1,16 @@
+humid
+hot
+sticky
+breeze
+chilly
+cold
+cool
+dry
+dusty
+freezing
+hot
+warm
+wet
+weather forecast
+antenna
+moisture

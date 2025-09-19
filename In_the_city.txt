@@ -1,0 +1,15 @@
+cities
+street
+lane
+city centre
+central station
+car park
+department
+store
+bridge
+temple
+embassy
+road system
+hospital
+garden
+avenue

@@ -1,0 +1,16 @@
+local library
+swimming pool
+cafeteria
+cottage
+parliament
+accommodation
+restaurant
+canteen
+cafe
+bookshop
+sports centre
+city council
+dance studio
+park
+conversation club
+kindergarten

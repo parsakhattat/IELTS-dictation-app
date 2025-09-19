@@ -1,0 +1,32 @@
+cargo plane
+shipment
+container ship
+boat
+lifeboat
+ferry
+hovercraft
+hydrofoil
+liner
+canal boat
+narrowboat
+dinghy sailing
+sailboat
+paddle steamer
+cabin cruiser
+rowing boat
+rowboat
+kayak
+canoe
+punt
+gondola
+aircraft
+helicopter
+seaplane
+airship
+hot-air balloon
+airport
+crew
+passenger
+platform
+hire a car
+automobile

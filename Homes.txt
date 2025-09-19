@@ -1,0 +1,33 @@
+semi-detached house
+duplex
+terraced house
+town house
+row house,
+bungalow
+thatched cottage
+mobile home
+houseboat
+block of flats
+apartment
+building
+condominium
+chimney
+bedroom
+basement
+landlord
+tenant
+rent
+lease
+neighborhood
+suburb
+sofa
+coffee table
+dormitory
+storey
+kitchen
+refrigerator
+microwave
+ground floor
+oven
+hallway
+insurance

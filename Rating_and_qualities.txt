@@ -1,0 +1,16 @@
+reasonable
+satisfactory
+dangerous
+safe
+strongly
+recommended
+poor quality
+satisfied
+disappointed
+efficient
+luxurious
+colored
+spotted
+striped
+expensive
+cheap

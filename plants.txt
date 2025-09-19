@@ -1,0 +1,14 @@
+mushroom
+fungus
+leaves
+seed
+core
+bark
+trunk
+twig
+branch
+flower
+stem
+roots
+cluster
+fertilizer

@@ -1,0 +1,27 @@
+double-decker bus
+single-decker
+minibus
+school bus
+coach
+truck
+tanker
+van
+lorry
+transporter
+forklift truck
+tow truck
+breakdown truck
+pickup
+jeep
+caravan
+camper
+tractor
+taxi
+cab
+tram
+underground
+subway
+stream train
+freight
+train
+goods train

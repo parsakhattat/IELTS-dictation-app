@@ -1,0 +1,11 @@
+dome
+palace
+fort
+castle
+glasshouse
+pyramid
+log cabin
+lighthouse
+hut
+skyscraper
+sculpture

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dictation Practice</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Dictation Practice</h1>
+
+    <!-- Controls (select + start) -->
+    <div id="controls">
+      <label for="category">Select Category:</label>
+      <select id="category">
+        {% for category in categories %}
+          <option value="{{ category }}">{{ category.replace('.txt','').replace('_',' ') }}</option>
+        {% endfor %}
+      </select>
+      <p id="categoryInfo" class="muted"></p>
+      <div style="margin-top: 12px;">
+        <button id="startBtn" class="primary">Start Practice</button>
+      </div>
+    </div>
+
+    <!-- Practice area: contains quizArea and completionMessage -->
+    <div id="practiceArea" style="display: none;">
+
+      <!-- Quiz area -->
+      <div id="quizArea">
+        <div class="row">
+          <button id="changeCategoryBtnTop" class="danger">Change Category</button>
+        </div>
+
+        <p id="wordProgress" class="muted"></p>
+
+        <p>Listen to the word and type it below:</p>
+        <div class="controls-row">
+          <button id="playWordBtn" class="secondary">Play Word</button>
+        </div>
+
+        <div style="margin: 10px 0;">
+          <input type="text" id="answerInput" placeholder="Type the word here" autocomplete="off">
+        </div>
+
+        <div class="controls-row">
+          <button id="submitBtn" class="primary">Submit</button>
+          <button id="nextWordBtn" class="primary" style="display:none;">Next Word</button>
+        </div>
+
+        <p id="feedback"></p>
+        <p id="attempts" class="muted"></p>
+
+        <p>Score: <span id="score">0</span>/<span id="total">0</span></p>
+      </div>
+
+      <!-- Completion message (shown when category finished) -->
+      <div id="completionMessage" style="display: none;">
+        <p id="completionText"></p>
+        <div id="wrongAnswersList"></div>
+        <div style="margin-top: 12px;">
+          <button id="restartBtn" class="primary">Restart Practice</button>
+          <button id="changeCategoryBtn" class="secondary">Change Category</button>
+        </div>
+      </div>
+
+    </div> <!-- /practiceArea -->
+
+  </div> <!-- /container -->
+
+  <script>
+    // DOM elements
+    const controls = document.getElementById('controls');
+    const categorySelect = document.getElementById('category');
+    const categoryInfo = document.getElementById('categoryInfo');
+    const startBtn = document.getElementById('startBtn');
+
+    const practiceArea = document.getElementById('practiceArea');
+    const quizArea = document.getElementById('quizArea');
+    const completionMessage = document.getElementById('completionMessage');
+
+    const changeCategoryBtnTop = document.getElementById('changeCategoryBtnTop');
+    const changeCategoryBtn = document.getElementById('changeCategoryBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    const playWordBtn = document.getElementById('playWordBtn');
+    const answerInput = document.getElementById('answerInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const nextWordBtn = document.getElementById('nextWordBtn');
+    const feedbackEl = document.getElementById('feedback');
+    const attemptsEl = document.getElementById('attempts');
+    const wordProgressEl = document.getElementById('wordProgress');
+    const scoreEl = document.getElementById('score');
+    const totalEl = document.getElementById('total');
+    const wrongAnswersList = document.getElementById('wrongAnswersList');
+    const completionText = document.getElementById('completionText');
+
+    // State
+    let currentWord = '';
+    let score = 0;
+    let total = 0;
+    let currentAttempt = 1;
+    let maxAttempts = 3;
+    let totalWords = 0;
+    let currentWordNumber = 0;
+    let usedWords = [];
+    let wrongAnswers = [];
+
+    // Helpers to set element display consistently
+    function show(el, displayType = 'block') {
+      if (!el) return;
+      el.style.display = displayType;
+    }
+    function hide(el) {
+      if (!el) return;
+      el.style.display = 'none';
+    }
+
+    // Initialize category info on page load and when selection changes
+    function updateCategoryInfo() {
+      fetch('/category_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: categorySelect.value })
+      })
+      .then(r => r.json())
+      .then(data => {
+        categoryInfo.textContent = data.total_words ? `Category has ${data.total_words} words` : 'Category is empty';
+      })
+      .catch(() => {
+        categoryInfo.textContent = '';
+      });
+    }
+    updateCategoryInfo();
+    categorySelect.addEventListener('change', updateCategoryInfo);
+
+    // Event bindings
+    startBtn.addEventListener('click', startPractice);
+    playWordBtn.addEventListener('click', playWord);
+    submitBtn.addEventListener('click', submitAnswer);
+    nextWordBtn.addEventListener('click', getNewWord);
+    restartBtn.addEventListener('click', startPractice);
+    changeCategoryBtnTop.addEventListener('click', changeCategory);
+    changeCategoryBtn.addEventListener('click', changeCategory);
+
+    answerInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (submitBtn.style.display !== 'none') submitAnswer();
+        else if (nextWordBtn.style.display !== 'none') getNewWord();
+      }
+    });
+
+    // Start a practice session
+    function startPractice() {
+      // Reset state
+      score = 0;
+      total = 0;
+      currentAttempt = 1;
+      currentWordNumber = 0;
+      usedWords = [];
+      wrongAnswers = [];
+      totalWords = 0;
+      currentWord = '';
+
+      // UI
+      hide(controls);
+      show(practiceArea, 'block');
+      show(quizArea, 'block');
+      hide(completionMessage);
+      resetQuizUI();
+
+      updateScore();
+      updateAttempts();
+      updateWordProgress();
+      getNewWord(); // start immediately
+    }
+
+    // Reset quiz-related UI elements so they are visible and ready
+    function resetQuizUI() {
+      show(playWordBtn, 'inline-block');
+      show(answerInput, 'inline-block');
+      show(submitBtn, 'inline-block');
+      hide(nextWordBtn);
+      show(feedbackEl, 'block');
+      show(attemptsEl, 'block');
+      show(wordProgressEl, 'block');
+      answerInput.value = '';
+      answerInput.focus();
+      categoryInfo.textContent = `Category has ${categoryInfo.textContent.split(' ').pop()}`; // keep existing info if any
+    }
+
+    // Change category (stop current session and show controls)
+    function changeCategory() {
+      // Confirm if mid-practice? (optional)
+      // if (!confirm('Change category? Progress will be lost.')) return;
+
+      // Reset UI & state
+      show(controls, 'block');
+      hide(practiceArea);
+      hide(completionMessage);
+      show(quizArea, 'block'); // keep quiz area restored for next start
+      answerInput.value = '';
+      score = 0;
+      total = 0;
+      currentAttempt = 1;
+      currentWordNumber = 0;
+      usedWords = [];
+      wrongAnswers = [];
+      updateScore();
+      updateAttempts();
+      updateWordProgress();
+      updateCategoryInfo();
+    }
+
+    // Play current word via speech synthesis
+    function playWord() {
+      if (!currentWord) return;
+      const utter = new SpeechSynthesisUtterance(currentWord);
+      utter.rate = 0.8;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // Request a new word from the server
+    function getNewWord() {
+      const category = categorySelect.value;
+      fetch('/get_word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: category })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error || 'No words available for this category');
+          // revert to controls
+          changeCategory();
+          return;
+        }
+
+        totalWords = data.total_words || 0;
+
+        // If we've served as many words as the category contains, end
+        if (currentWordNumber >= totalWords) {
+          endPractice();
+          return;
+        }
+
+        // Ensure unique word for the session
+        if (!usedWords.includes(data.word)) {
+          currentWord = data.word;
+          usedWords.push(currentWord);
+          currentWordNumber++;
+          currentAttempt = 1;
+          answerInput.value = '';
+          answerInput.focus();
+          feedbackEl.textContent = '';
+          hide(nextWordBtn);
+          show(submitBtn, 'inline-block');
+          updateWordProgress();
+          updateAttempts();
+          // show play button & input (in case they were hidden previously)
+          resetQuizUI();
+          // auto-play
+          playWord();
+        } else {
+          // try again (only if not exhausted)
+          if (usedWords.length < totalWords) {
+            getNewWord();
+          } else {
+            endPractice();
+          }
+        }
+      })
+      .catch(() => {
+        alert('Error fetching a word from server');
+      });
+    }
+
+    // When the user submits an answer
+    function submitAnswer() {
+      const answer = answerInput.value;
+      if (!answer.trim()) return;
+
+      fetch('/check_answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer: answer, correct_word: currentWord, attempt: currentAttempt })
+      })
+      .then(r => r.json())
+      .then(data => {
+        maxAttempts = data.max_attempts;
+        if (data.is_correct) {
+          score++;
+          total++;
+          feedbackEl.textContent = 'Correct!';
+          feedbackEl.style.color = 'green';
+          hide(submitBtn);
+          show(nextWordBtn, 'inline-block');
+          updateScore();
+          updateWordProgress();
+        } else if (data.attempts_remaining > 0) {
+          currentAttempt++;
+          // show letter-by-letter hints
+          feedbackEl.innerHTML = `Try again! Your input: ${compareLetters(answer, currentWord)}`;
+          feedbackEl.style.color = 'orange';
+          answerInput.value = '';
+          answerInput.focus();
+          updateAttempts();
+        } else {
+          // out of attempts
+          total++;
+          wrongAnswers.push({ given: answer, correct: data.correct_word });
+          feedbackEl.textContent = `Out of attempts! The correct word was: ${data.correct_word}`;
+          feedbackEl.style.color = 'red';
+          hide(submitBtn);
+          show(nextWordBtn, 'inline-block');
+          updateScore();
+          updateWordProgress();
+        }
+      })
+      .catch(() => {
+        alert('Error checking the answer');
+      });
+    }
+
+    // Compare letters for hint
+    function compareLetters(userAnswer, correctWord) {
+      let result = '';
+      const maxLength = Math.max(userAnswer.length, correctWord.length);
+      for (let i = 0; i < maxLength; i++) {
+        const u = (userAnswer[i] || '').toLowerCase();
+        const c = (correctWord[i] || '').toLowerCase();
+        if (u && u === c) result += `<span class="match">${userAnswer[i]}</span>`;
+        else if (u) result += `<span class="mismatch">${userAnswer[i]}</span>`;
+        else result += `<span class="mismatch">&nbsp;</span>`;
+      }
+      return result;
+    }
+
+    // End of category/practice
+    function endPractice() {
+      // Show completion message, hide quiz area (but keep practiceArea visible)
+      hide(quizArea);
+      show(completionMessage, 'block');
+
+      const wrongCount = wrongAnswers.length;
+      const rightCount = score;
+      const percent = total > 0 ? ((score / total) * 100).toFixed(1) : 0;
+      completionText.textContent = `Practice complete! ✅ Correct: ${rightCount}, ❌ Wrong: ${wrongCount}, Score: ${percent}%`;
+
+      // Render wrong answers list
+      if (wrongAnswers.length > 0) {
+        let html = '<h3>Wrong Answers</h3><ul>';
+        wrongAnswers.forEach(it => {
+          html += `<li>You wrote: <b>${escapeHtml(it.given)}</b> → Correct: <b>${escapeHtml(it.correct)}</b></li>`;
+        });
+        html += '</ul>';
+        wrongAnswersList.innerHTML = html;
+      } else {
+        wrongAnswersList.innerHTML = '<p>No wrong answers — great job! 🎉</p>';
+      }
+    }
+
+    // Utility: escape HTML
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // UI updaters
+    function updateScore() {
+      scoreEl.textContent = score;
+      totalEl.textContent = total;
+    }
+    function updateAttempts() {
+      if (currentAttempt <= maxAttempts) {
+        attemptsEl.textContent = `Attempts remaining: ${Math.max(0, maxAttempts - currentAttempt + 1)}/${maxAttempts}`;
+      } else {
+        attemptsEl.textContent = '';
+      }
+    }
+    function updateWordProgress() {
+      wordProgressEl.textContent = `Word ${currentWordNumber} of ${totalWords || '?'}`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+occupation
+profession
+designer
+decorator
+architect
+engineer
+manager
+waitress
+waiter
+teacher
+vacancy
+professor
+specialist
+psychologist
+volunteer
+freelance
+secretary
+craftsman
+work experience
+curriculum vitae
+mail
+address
+receptionist
+pilot
+guard
+flight attendant
+lecturer
+office assistant
+clerk
+accountant
+cashier
+captain

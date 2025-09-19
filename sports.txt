@@ -1,0 +1,54 @@
+cricket
+baseball
+basketball
+rugby
+soccer
+american football
+hockey,
+swimming
+tennis
+squash
+badminton
+ping-pong
+field
+court
+pitch
+stadium
+team,
+the discus
+the javelin
+the hammer
+the high jump
+horse racing
+show jumping
+polo,
+cycling
+gymnasium
+athlete
+gym
+extreme sports
+paragliding
+hang-gliding
+skydiving,
+abseiling
+snowboarding
+bungee jumping
+surfing
+windsurfing
+jet-skiing,
+bodyboarding
+white-water rafting
+kitesurfing
+mountain biking
+jogging
+press-up
+push-up
+barbell
+treadmill
+judo
+recreation
+snooker
+walking
+championship
+canoeing
+refreshment

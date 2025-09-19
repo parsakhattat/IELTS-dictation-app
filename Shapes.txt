@@ -1,0 +1,10 @@
+square
+rectangular
+triangular
+polygon
+oval
+spherical
+spiral
+circular
+curved
+cylindrical

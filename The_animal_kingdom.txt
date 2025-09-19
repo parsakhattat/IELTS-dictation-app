@@ -1,0 +1,23 @@
+birds of prey
+seabirds
+poultry and game
+mammals
+cetacean
+whale
+primates
+rodents
+fish
+amphibian
+reptile
+insects
+octopus
+phylum
+class
+order
+family
+genus
+species
+livestock
+creature
+lion
+penguin
